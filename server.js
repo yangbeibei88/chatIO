@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { Server } from "socket.io";
 
 const app = express();
+const PORT = process.env.PORT || 8080;
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
@@ -57,6 +58,6 @@ io.on("connection", (socket) => {
   }
 });
 
-httpServer.listen(8080, () => {
+httpServer.listen(PORT, () => {
   console.log("Server is listening to http://localhost:8080");
 });
