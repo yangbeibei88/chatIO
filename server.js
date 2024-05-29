@@ -13,6 +13,8 @@ const httpServer = createServer(app);
 
 const io = new Server(httpServer);
 
+let usernames = [];
+
 app.get("/", (req, res) => {
   res.sendFile(join(__dirname, "/index.html"));
 });
@@ -20,10 +22,39 @@ app.get("/", (req, res) => {
 io.on("connection", (socket) => {
   console.log("A user socket connected: " + socket.id);
 
-  // set socket event: 'chat message'. The same event will be cought on client
-  socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
+  // create username event
+  socket.on("new user", (data, cb) => {
+    if (usernames.includes(data)) {
+      cb(false);
+    } else {
+      cb(true);
+      socket.username = data;
+      usernames.push(socket.username);
+      updateUsernames();
+      // update username
+      // io.emit("usernames", usernames);
+    }
   });
+
+  // Create send message event set socket event: 'chat message'. The same event will be cought on client
+  socket.on("chat message", (data) => {
+    io.emit("chat message", { msg: data, user: socket.username });
+  });
+
+  // disconnect socket
+  socket.on("disconnect", () => {
+    if (!socket.username) {
+      return;
+    }
+
+    usernames.splice(usernames.indexOf(socket.username), 1);
+    updateUsernames();
+  });
+
+  // update usernames
+  function updateUsernames() {
+    io.emit("usernames", usernames);
+  }
 });
 
 httpServer.listen(8080, () => {

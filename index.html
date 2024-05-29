@@ -27,7 +27,7 @@
       background-color: #f4f4f4;
       padding: 10px;
       margin-left: 20px;
-      display: none;
+      /* display: none; */
     }
 
     #chatWindow {
@@ -49,8 +49,8 @@
     }
 
     #mainWrapper {
-      /* display: none; */
-      display: flex;
+      display: none;
+      /* display: flex; */
       gap: 10px;
     }
 
@@ -72,8 +72,6 @@
       /* max-height: 200px; */
     }
 
-
-
     form {
       width: 100%;
       display: flex;
@@ -93,6 +91,7 @@
 <body>
   <div class="container">
     <h1>Chat IO</h1>
+    <div id="error"></div>
     <div id="namesWrapper">
       <p>Create Username:</p>
       <form id="usernameForm">
@@ -128,6 +127,31 @@
     const msgForm = document.getElementById('messageForm');
     const msgInput = document.getElementById('message');
     const messages = document.getElementById('messages');
+    const usernameForm = document.getElementById('usernameForm');
+    const users = document.getElementById('users');
+    const usernameInput = document.getElementById('username');
+    const namesWrapper = document.getElementById('namesWrapper');
+    const mainWrapper = document.getElementById('mainWrapper');
+    const error = document.getElementById('error');
+
+    usernameForm.addEventListener('submit', (e) => {
+      e.preventDefault();
+      socket.emit('new user', usernameInput.value, (data) => {
+        // console.log(data);
+        if (data) {
+          namesWrapper.style.display = 'none';
+          mainWrapper.style.display = 'flex';
+        } else {
+          error.textContent = 'Username is taken';
+        }
+      });
+    });
+
+    socket.on('usernames', (data) => {
+      let currentUsers = '';
+      data.map((user) => currentUsers += user + '<br>');
+      users.innerHTML = currentUsers;
+    })
 
     msgForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -137,9 +161,9 @@
       }
     });
 
-    socket.on('chat message', (msg) => {
+    socket.on('chat message', (data) => {
       const item = document.createElement('li');
-      item.textContent = msg;
+      item.innerHTML = `<strong>${data.user}:</strong> ${data.msg}`;
       messages.appendChild(item);
       window.scrollTo(0, document.body.scrollHeight);
     });
